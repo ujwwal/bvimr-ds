@@ -2,8 +2,21 @@ cat("========================================\n")
 cat("CASE STUDY 3 : SHARE MARKET DATA ANALYSIS AND PREDICTION\n")
 cat("========================================\n\n")
 
-# Load dataset
-stock <- read.csv("stock.csv", stringsAsFactors = FALSE)
+# Load dataset (robust path lookup)
+args <- commandArgs(trailingOnly = FALSE)
+file_arg <- "--file="
+script_path <- if (any(grepl(file_arg, args))) sub(file_arg, "", args[grep(file_arg, args)]) else ""
+script_dir <- if (nzchar(script_path)) tryCatch(dirname(normalizePath(script_path)), error=function(e) dirname(path.expand(script_path))) else getwd()
+filename <- "stock.csv"
+candidates <- c(
+     file.path(script_dir, filename),
+     file.path(getwd(), filename),
+     file.path(getwd(), "case study3", filename)
+)
+data_file <- NULL
+for (p in candidates) if (file.exists(p)) { data_file <- p; break }
+if (is.null(data_file)) stop(paste("Data file not found. Tried:", paste(candidates, collapse=",")))
+stock <- read.csv(data_file, stringsAsFactors = FALSE)
 
 cat("1. Summary statistics of stock dataset:\n")
 print(summary(stock))

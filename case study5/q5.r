@@ -2,8 +2,21 @@ cat("========================================\n")
 cat("CASE STUDY 5 : COVID-19 DATA ANALYSIS AND PREDICTION\n")
 cat("========================================\n\n")
 
-# Load dataset
-covid <- read.csv("covid_final.csv", stringsAsFactors = FALSE, check.names = FALSE)
+# Load dataset (robust path lookup)
+args <- commandArgs(trailingOnly = FALSE)
+file_arg <- "--file="
+script_path <- if (any(grepl(file_arg, args))) sub(file_arg, "", args[grep(file_arg, args)]) else ""
+script_dir <- if (nzchar(script_path)) tryCatch(dirname(normalizePath(script_path)), error=function(e) dirname(path.expand(script_path))) else getwd()
+filename <- "covid_final.csv"
+candidates <- c(
+     file.path(script_dir, filename),
+     file.path(getwd(), filename),
+     file.path(getwd(), "case study5", filename)
+)
+data_file <- NULL
+for (p in candidates) if (file.exists(p)) { data_file <- p; break }
+if (is.null(data_file)) stop(paste("Data file not found. Tried:", paste(candidates, collapse=",")))
+covid <- read.csv(data_file, stringsAsFactors = FALSE, check.names = FALSE)
 names(covid) <- trimws(names(covid))
 names(covid) <- gsub("[ /]+", "_", names(covid))
 names(covid) <- gsub("[^A-Za-z0-9_]", "", names(covid))

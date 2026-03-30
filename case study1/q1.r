@@ -3,7 +3,32 @@ cat("CASE STUDY 1 : IRIS DATASET IN R\n")
 cat("========================================\n\n")
 
 # Load dataset
-iris <- read.csv("Iris.csv", stringsAsFactors = FALSE)
+## Make script robust to current working directory: locate CSV relative to script file
+args <- commandArgs(trailingOnly = FALSE)
+file_arg <- "--file="
+script_path <- if (any(grepl(file_arg, args))) {
+        sub(file_arg, "", args[grep(file_arg, args)])
+} else {
+        ""
+}
+script_dir <- if (nzchar(script_path)) {
+        # try to normalize, but fall back to raw path if normalize fails
+        tryCatch(dirname(normalizePath(script_path)), error = function(e) dirname(path.expand(script_path)))
+} else getwd()
+
+# Try multiple candidate locations in order and pick the first existing file
+candidates <- c(
+        file.path(script_dir, "Iris.csv"),
+        file.path(getwd(), "Iris.csv"),
+        file.path(getwd(), "case study1", "Iris.csv"),
+        file.path(getwd(), "case\ study1", "Iris.csv")
+)
+data_file <- NULL
+for (p in candidates) {
+        if (file.exists(p)) { data_file <- p; break }
+}
+if (is.null(data_file)) stop(paste("Data file not found. Tried:", paste(candidates, collapse = ", ")))
+iris <- read.csv(data_file, stringsAsFactors = FALSE)
 iris$Species <- as.factor(iris$Species)
 
 cat("1. Structure of dataset:\n")
